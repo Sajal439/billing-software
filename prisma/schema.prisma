@@ -14,19 +14,18 @@ datasource db {
 }
 
 model Item {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String @unique
+  id String @id @default(uuid()) 
   price Float @default(0)
   currQty Float @default(0) 
   
-  unitId String
+  unitId String 
   unit Unit @relation(fields: [unitId],references: [id], name: "PrimaryUnit")
 
-  altUnitId String?
+  altUnitId String? 
   altUnit Unit? @relation(fields: [altUnitId], references: [id] , name: "AltUnit")
   altUnitConversion Float? 
 
-  packaginUnitId String?
+  packaginUnitId String? 
   packagingUnit Unit? @relation(fields: [packaginUnitId],references: [id], name: "PackagingUnit")
   packagingUnitConversion Float?
 
@@ -34,7 +33,7 @@ model Item {
 
 
 model Unit {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id String @id @default(uuid())
   name String
   items Item[] @relation("PrimaryUnit")
   altItems Item[] @relation("AltUnit")
