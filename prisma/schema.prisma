@@ -12,3 +12,32 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Item {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String @unique
+  price Float @default(0)
+  currQty Float @default(0) 
+  
+  unitId String
+  unit Unit @relation(fields: [unitId],references: [id], name: "PrimaryUnit")
+
+  altUnitId String?
+  altUnit Unit? @relation(fields: [altUnitId], references: [id] , name: "AltUnit")
+  altUnitConversion Float? 
+
+  packaginUnitId String?
+  packagingUnit Unit? @relation(fields: [packaginUnitId],references: [id], name: "PackagingUnit")
+  packagingUnitConversion Float?
+
+}
+
+
+model Unit {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+  items Item[] @relation("PrimaryUnit")
+  altItems Item[] @relation("AltUnit")
+  packingItems Item[] @relation("PackagingUnit")
+}
+
