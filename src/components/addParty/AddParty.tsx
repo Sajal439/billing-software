@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter } from "next/router";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@radix-ui/react-label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 export default function AddPartyForm() {
   const [name, setName] = useState("");
@@ -13,76 +13,54 @@ export default function AddPartyForm() {
   const [address, setAddress] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await fetch("/api/parties", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, mobile, address }),
-      });
-      if (response.ok) {
-        router.push("/parties");
-        router.reload();
-      } else {
-        console.error("Failed to add party", response.statusText);
-      }
-    } catch (error) {
-      console.error("Failed to add party", error);
-    }
-
-    console.log("party added", { name, mobile, address });
-
+    // Handle form submission logic here
+    console.log("New party added", { name, mobile, address });
+    // In a real application, you would typically send this data to an API
+    // After successful submission, redirect back to the sales record form
     router.push("/");
   };
 
   return (
-    <Card className="w-full mx-auto mt-8">
+    <Card className="w-full max-w-md mx-auto mt-8">
       <CardHeader>
-        <CardTitle>Add new Party</CardTitle>
+        <CardTitle>Add New Party</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
               type="text"
               value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-              }}
-              placeholder="Enter Party Name"
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter party name"
               required
-            ></Input>
+            />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Label htmlFor="mobile">Mobile Number</Label>
             <Input
               id="mobile"
               type="tel"
               value={mobile}
-              onChange={(e) => {
-                setMobile(e.target.value);
-              }}
-              placeholder="Enter Mobile Number"
+              onChange={(e) => setMobile(e.target.value)}
+              placeholder="Enter mobile number"
               required
-            ></Input>
+            />
           </div>
-          <div className="space-y-4">
-            <Label htmlFor="mobile">Addrress</Label>
+          <div className="space-y-2">
+            <Label htmlFor="address">Address</Label>
             <Input
               id="address"
               type="text"
               value={address}
-              onChange={(e) => {
-                setAddress(e.target.value);
-              }}
-              placeholder="Enter Address"
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Enter address"
               required
-            ></Input>
+            />
           </div>
           <div className="flex justify-between">
             <Button
