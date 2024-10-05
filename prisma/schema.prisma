@@ -14,29 +14,41 @@ datasource db {
 }
 
 model Item {
-  id String @id @default(uuid()) 
-  price Float @default(0)
-  currQty Float @default(0) 
-  
-  unitId String 
-  unit Unit @relation(fields: [unitId],references: [id], name: "PrimaryUnit")
+  id      String @id @default(uuid())
+  price   Float  @default(0)
+  currQty Float  @default(0)
 
-  altUnitId String? 
-  altUnit Unit? @relation(fields: [altUnitId], references: [id] , name: "AltUnit")
-  altUnitConversion Float? 
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], name: "PrimaryUnit")
 
-  packaginUnitId String? 
-  packagingUnit Unit? @relation(fields: [packaginUnitId],references: [id], name: "PackagingUnit")
+  altUnitId         String?
+  altUnit           Unit?   @relation(fields: [altUnitId], references: [id], name: "AltUnit")
+  altUnitConversion Float?
+
+  packaginUnitId          String?
+  packagingUnit           Unit?   @relation(fields: [packaginUnitId], references: [id], name: "PackagingUnit")
   packagingUnitConversion Float?
-
 }
 
-
 model Unit {
-  id String @id @default(uuid())
-  name String
-  items Item[] @relation("PrimaryUnit")
-  altItems Item[] @relation("AltUnit")
+  id           String @id @default(uuid())
+  name         String
+  items        Item[] @relation("PrimaryUnit")
+  altItems     Item[] @relation("AltUnit")
   packingItems Item[] @relation("PackagingUnit")
 }
 
+model Account {
+  id             String        @id @default(uuid())
+  name           String
+  mobile         String
+  address        String
+  currentBalance Float         @default(0)
+  transactions   Transaction[] @relation("AccountTransaction")
+}
+
+model Transaction {
+  id String @id @default(uuid())
+
+  Account Account[] @relation("AccountTransaction")
+}
