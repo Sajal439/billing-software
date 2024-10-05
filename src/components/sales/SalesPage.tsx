@@ -20,20 +20,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 // Mock data for party suggestions
 const partySuggestions = [
-  "Acme Corp",
-  "Globex Corporation",
-  "Soylent Corp",
-  "Initech",
-  "Umbrella Corporation",
-  "Hooli",
-  "Dunder Mifflin",
-  "Stark Industries",
-  "Wayne Enterprises",
-  "Cyberdyne Systems",
+  { name: "Acme Corp", mobile: "1234567890" },
+  { name: "Globex Corporation", mobile: "2345678901" },
+  { name: "Soylent Corp", mobile: "3456789012" },
+  { name: "Initech", mobile: "4567890123" },
+  { name: "Umbrella Corporation", mobile: "5678901234" },
+  { name: "Hooli", mobile: "6789012345" },
+  { name: "Dunder Mifflin", mobile: "7890123456" },
+  { name: "Stark Industries", mobile: "8901234567" },
+  { name: "Wayne Enterprises", mobile: "9012345678" },
+  { name: "Cyberdyne Systems", mobile: "0123456789" },
 ];
 
 interface TableItem {
@@ -49,6 +50,7 @@ export default function SalesPage() {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [voucherType, setVoucherType] = useState("");
   const [partyName, setPartyName] = useState("");
+  const [partyMobile, setPartyMobile] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [tableItems, setTableItems] = useState<TableItem[]>([]);
   const [newItem, setNewItem] = useState<TableItem>({
@@ -63,9 +65,9 @@ export default function SalesPage() {
     setPartyName(value);
     if (value.length > 0) {
       const filtered = partySuggestions.filter((party) =>
-        party.toLowerCase().includes(value.toLowerCase())
+        party.name.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(filtered);
+      setSuggestions(filtered.map((party) => party.name));
     } else {
       setSuggestions([]);
     }
@@ -141,7 +143,7 @@ export default function SalesPage() {
     setNewItem((prev) => ({ ...prev, id: reindexedItems.length + 1 }));
   };
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-8 rounded-xl">
+    <Card className="w-full max-w-4xl mx-auto mt-8">
       <CardHeader>
         <CardTitle>Sales Record Form</CardTitle>
       </CardHeader>
@@ -151,7 +153,6 @@ export default function SalesPage() {
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
-                className="rounded-xl border-2 border-gray-400 focus:border-black"
                 id="date"
                 type="date"
                 value={date}
@@ -161,76 +162,70 @@ export default function SalesPage() {
             <div className="space-y-2">
               <Label htmlFor="invoiceNumber">Invoice Number</Label>
               <Input
-                className="rounded-xl focus:border-black border-2 border-gray-400"
                 id="invoiceNumber"
                 type="text"
                 value={invoiceNumber}
                 onChange={(e) => setInvoiceNumber(e.target.value)}
               />
             </div>
-            <div className="space-y-2 ">
+            <div className="space-y-2">
               <Label htmlFor="voucherType">Voucher Type</Label>
               <Select value={voucherType} onValueChange={setVoucherType}>
-                <SelectTrigger
-                  className="rounded-xl border-2 border-gray-400 focus:border-black"
-                  id="voucherType"
-                >
+                <SelectTrigger id="voucherType">
                   <SelectValue placeholder="Select voucher type" />
                 </SelectTrigger>
-                <SelectContent className="bg-white opacity-100 rounded-xl">
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="sales"
-                  >
-                    Sales
-                  </SelectItem>
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="purchase"
-                  >
-                    Purchase
-                  </SelectItem>
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="receipt"
-                  >
-                    Receipt
-                  </SelectItem>
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="payment"
-                  >
-                    Payment
-                  </SelectItem>
+                <SelectContent>
+                  <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="purchase">Purchase</SelectItem>
+                  <SelectItem value="receipt">Receipt</SelectItem>
+                  <SelectItem value="payment">Payment</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="partyName">Party Name</Label>
-            <div className="relative">
+            <div className="relative flex items-center">
               <Input
-                className="rounded-xl border-2 border-gray-400 focus:border-black"
                 id="partyName"
                 type="text"
                 value={partyName}
                 onChange={(e) => handlePartyNameChange(e.target.value)}
                 placeholder="Search for party name"
+                className="flex-grow"
               />
-              {suggestions.length > 0 && (
-                <ul className="absolute z-10 w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-auto bg-white opacity-100">
-                  {suggestions.map((suggestion, index) => (
-                    <li
-                      key={index}
-                      className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      {suggestion}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <Link href="/AddParty" passHref>
+                <Button
+                  className="ml-2 h-10 w-10 rounded-lg bg-black"
+                  size="icon"
+                >
+                  <Plus className="h-5 w-5 text-white" />
+                </Button>
+              </Link>
             </div>
+            {suggestions.length > 0 && (
+              <ul className="absolute z-10 w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-auto">
+                {suggestions.map((suggestion, index) => (
+                  <li
+                    key={index}
+                    className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="partyMobile">Party Mobile Number</Label>
+            <Input
+              id="partyMobile"
+              type="tel"
+              value={partyMobile}
+              onChange={(e) => setPartyMobile(e.target.value)}
+              placeholder="Enter party mobile number"
+            />
           </div>
           <div className="space-y-4">
             <Table>
@@ -330,15 +325,13 @@ export default function SalesPage() {
                   </TableCell>
                   <TableCell>{newItem.amount.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Button onClick={handleAddItem}>Add Item</Button>
+                    <Button onClick={handleAddItem}>Add</Button>
                   </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </div>
-          <Button className="bg-blue-500 rounded-xl" type="submit">
-            Submit
-          </Button>
+          <Button type="submit">Submit</Button>
         </form>
       </CardContent>
     </Card>

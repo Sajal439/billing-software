@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 export async function createAccount({
   data,
 }: {
-  data: Prisma.AccountCreateInput;
+  data: Prisma.UnitCreateInput;
 }) {
   try {
-    const newAccount = await prisma.account.create({ data });
+    const newAccount = await prisma.unit.create({ data });
     return newAccount;
   } catch (error) {
     console.error("error creating account", error);
