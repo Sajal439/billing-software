@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +13,25 @@ export default function AddPartyForm() {
   const [address, setAddress] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    try {
+      const response = await fetch("/api/parties", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, mobile, address }),
+      });
+      if (response.ok) {
+        router.push("/parties");
+        router.reload();
+      } else {
+        console.error("Failed to add party", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to add party", error);
+    }
 
     console.log("party added", { name, mobile, address });
 

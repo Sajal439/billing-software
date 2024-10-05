@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,22 +20,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import Link from "next/link";
 
-// Mock data for party suggestions
-const partySuggestions = [
-  { name: "Acme Corp", mobile: "1234567890" },
-  { name: "Globex Corporation", mobile: "2345678901" },
-  { name: "Soylent Corp", mobile: "3456789012" },
-  { name: "Initech", mobile: "4567890123" },
-  { name: "Umbrella Corporation", mobile: "5678901234" },
-  { name: "Hooli", mobile: "6789012345" },
-  { name: "Dunder Mifflin", mobile: "7890123456" },
-  { name: "Stark Industries", mobile: "8901234567" },
-  { name: "Wayne Enterprises", mobile: "9012345678" },
-  { name: "Cyberdyne Systems", mobile: "0123456789" },
-];
+interface Party {
+  id: number;
+  name: string;
+  mobile: string;
+  address: string;
+}
 
 interface TableItem {
   id: number;
@@ -45,13 +38,13 @@ interface TableItem {
   amount: number;
 }
 
-export default function SalesPage() {
+export default function SalesRecordForm() {
   const [date, setDate] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [voucherType, setVoucherType] = useState("");
   const [partyName, setPartyName] = useState("");
   const [partyMobile, setPartyMobile] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Party[]>([]);
   const [tableItems, setTableItems] = useState<TableItem[]>([]);
   const [newItem, setNewItem] = useState<TableItem>({
     id: 1,
@@ -60,34 +53,49 @@ export default function SalesPage() {
     rate: 0,
     amount: 0,
   });
+  const [allParties, setAllParties] = useState<Party[]>([]);
+
+  useEffect(() => {
+    fetchParties();
+  }, []);
+
+  const fetchParties = async () => {
+    try {
+      const response = await fetch("/api/parties");
+      if (response.ok) {
+        const parties = await response.json();
+        setAllParties(parties);
+      } else {
+        console.error("Failed to fetch parties");
+      }
+    } catch (error) {
+      console.error("Error fetching parties:", error);
+    }
+  };
 
   const handlePartyNameChange = (value: string) => {
     setPartyName(value);
+    setPartyMobile("");
     if (value.length > 0) {
-      const filtered = partySuggestions.filter((party) =>
+      const filtered = allParties.filter((party) =>
         party.name.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(filtered.map((party) => party.name));
+      setSuggestions(filtered);
     } else {
       setSuggestions([]);
     }
   };
 
-  useEffect(() => {
-    const currentDate = new Date().toISOString().split("T")[0];
-    setDate(currentDate);
-  });
-  useEffect(() => {
-    const amount = calculateAmount(newItem.quantity, newItem.rate);
-    setNewItem((prev) => ({ ...prev, amount }));
-  }, [newItem.quantity, newItem.rate]);
-  const handleSuggestionClick = (suggestion: string) => {
-    setPartyName(suggestion);
+  const handleSuggestionClick = (suggestion: Party) => {
+    setPartyName(suggestion.name);
+    setPartyMobile(suggestion.mobile);
     setSuggestions([]);
   };
+
   const calculateAmount = (quantity: number, rate: number) => {
     return quantity * rate;
   };
+
   const handleAddItem = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent form submission
     const amount = calculateAmount(newItem.quantity, newItem.rate);
@@ -100,6 +108,7 @@ export default function SalesPage() {
       amount: 0,
     });
   };
+
   const handleItemChange = (
     id: number,
     field: keyof TableItem,
@@ -120,17 +129,7 @@ export default function SalesPage() {
     });
     setTableItems(updatedItems);
   };
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted", {
-      date,
-      invoiceNumber,
-      voucherType,
-      partyName,
-      tableItems,
-    });
-  };
+
   const handleDeleteItem = (id: number) => {
     const updatedItems = tableItems.filter((item) => item.id !== id);
     // Update serial numbers
@@ -142,6 +141,25 @@ export default function SalesPage() {
     // Update newItem id
     setNewItem((prev) => ({ ...prev, id: reindexedItems.length + 1 }));
   };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Handle form submission logic here
+    console.log("Form submitted", {
+      date,
+      invoiceNumber,
+      voucherType,
+      partyName,
+      partyMobile,
+      tableItems,
+    });
+  };
+
+  useEffect(() => {
+    const amount = calculateAmount(newItem.quantity, newItem.rate);
+    setNewItem((prev) => ({ ...prev, amount }));
+  }, [newItem.quantity, newItem.rate]);
+
   return (
     <Card className="w-full max-w-4xl mx-auto mt-8">
       <CardHeader>
@@ -194,24 +212,21 @@ export default function SalesPage() {
                 placeholder="Search for party name"
                 className="flex-grow"
               />
-              <Link href="/AddParty" passHref>
-                <Button
-                  className="ml-2 h-10 w-10 rounded-lg bg-black"
-                  size="icon"
-                >
-                  <Plus className="h-5 w-5 text-white" />
+              <Link href="/addparty" passHref>
+                <Button className="ml-2" size="icon">
+                  <Plus className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
             {suggestions.length > 0 && (
               <ul className="absolute z-10 w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-auto">
-                {suggestions.map((suggestion, index) => (
+                {suggestions.map((suggestion) => (
                   <li
-                    key={index}
+                    key={suggestion.id}
                     className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
                     onClick={() => handleSuggestionClick(suggestion)}
                   >
-                    {suggestion}
+                    {suggestion.name}
                   </li>
                 ))}
               </ul>
