@@ -31,3 +31,15 @@ export async function updateUnit({
     throw new Error("error updating unit");
   }
 }
+
+export async function deleteUnit({ id }: { id: string }) {
+  try {
+    const deleteUnit = await prisma.unit.delete({
+      where: { id },
+    });
+    return deleteUnit;
+  } catch (error) {
+    console.error("error deleting unit", error);
+    throw new Error("error deleting unit");
+  }
+}
