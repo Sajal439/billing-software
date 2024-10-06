@@ -193,7 +193,7 @@ export default function SalesRecordForm() {
   }, [newItem.quantity, newItem.rate]);
 
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-8 rounded-xl">
+    <Card className="w-full max-w-4xl mx-auto mt-8 rounded-xl shadow-xl shadow-slate-300">
       <CardHeader>
         <CardTitle>Sales Record Form</CardTitle>
       </CardHeader>
@@ -203,7 +203,7 @@ export default function SalesRecordForm() {
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
-                className="w-full rounded-xl focus:border-black border-gray-400 border-2"
+                className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 id="date"
                 type="date"
                 value={date}
@@ -213,7 +213,7 @@ export default function SalesRecordForm() {
             <div className="space-y-2">
               <Label htmlFor="invoiceNumber">Invoice Number</Label>
               <Input
-                className="w-full rounded-xl focus:border-black border-gray-400 border-2"
+                className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 id="invoiceNumber"
                 type="text"
                 value={invoiceNumber}
@@ -225,7 +225,7 @@ export default function SalesRecordForm() {
               <Select value={voucherType} onValueChange={setVoucherType}>
                 <SelectTrigger
                   id="voucherType"
-                  className="w-full rounded-xl focus:border-black border-gray-400 border-2"
+                  className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 >
                   <SelectValue placeholder="Select voucher type" />
                 </SelectTrigger>
@@ -262,7 +262,7 @@ export default function SalesRecordForm() {
             <Label htmlFor="partyName">Party Name</Label>
             <div className="relative flex items-center">
               <Input
-                className="w-full rounded-xl focus:border-black border-gray-400 border-2"
+                className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 id="partyName"
                 type="text"
                 value={partyName}
@@ -270,7 +270,10 @@ export default function SalesRecordForm() {
                 placeholder="Search for party name"
               />
               <Link href="/add-party" passHref>
-                <Button className="ml-2" size="icon">
+                <Button
+                  className="ml-2 hover:bg-black hover:text-white rounded-xl "
+                  size="icon"
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </Link>
@@ -292,7 +295,7 @@ export default function SalesRecordForm() {
           <div className="space-y-2">
             <Label htmlFor="partyMobile">Party Mobile Number</Label>
             <Input
-              className="w-full rounded-xl focus:border-black border-gray-400 border-2"
+              className="w-full rounded-xl focus:border-black border-gray-400 border-1"
               id="partyMobile"
               type="tel"
               value={partyMobile}
@@ -334,6 +337,7 @@ export default function SalesRecordForm() {
                     <TableCell>{item.amount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Button
+                        className="rounded-xl hover:bg-red-400 hover:text-white"
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteItem(item.id)}
@@ -348,16 +352,17 @@ export default function SalesRecordForm() {
                   <TableCell>
                     <div className="relative">
                       <Input
+                        className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                         value={newItem.name}
                         onChange={(e) => handleItemNameChange(e.target.value)}
                         placeholder="Search for item"
                       />
                       {itemSuggestions.length > 0 && (
-                        <ul className="absolute z-10 w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-auto">
+                        <ul className="absolute z-10 w-full bg-background border border-input rounded-xl mt-1 max-h-60 overflow-auto">
                           {itemSuggestions.map((suggestion) => (
                             <li
                               key={suggestion.id}
-                              className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                              className="px-4 py-2 z-10 hover:font-bold bg-white opacity-100 cursor-pointer"
                               onClick={() =>
                                 handleItemSuggestionClick(suggestion)
                               }
@@ -371,6 +376,7 @@ export default function SalesRecordForm() {
                   </TableCell>
                   <TableCell>
                     <Input
+                      className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                       type="number"
                       value={newItem.quantity || ""}
                       onChange={(e) =>
@@ -389,13 +395,23 @@ export default function SalesRecordForm() {
                   <TableCell>{newItem.rate.toFixed(2)}</TableCell>
                   <TableCell>{newItem.amount.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Button onClick={handleAddItem}>Add</Button>
+                    <Button
+                      className="hover:bg-black hover:text-white rounded-xl"
+                      onClick={handleAddItem}
+                    >
+                      Add
+                    </Button>
                   </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </div>
-          <Button type="submit">Submit</Button>
+          <Button
+            className="hover:bg-black hover:text-white rounded-xl"
+            type="submit"
+          >
+            Submit
+          </Button>
         </form>
       </CardContent>
     </Card>

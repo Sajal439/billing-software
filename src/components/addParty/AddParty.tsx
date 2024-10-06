@@ -15,15 +15,14 @@ export default function AddPartyForm() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle form submission logic here
+
     console.log("New party added", { name, mobile, address });
-    // In a real application, you would typically send this data to an API
-    // After successful submission, redirect back to the sales record form
+
     router.push("/");
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-8">
+    <Card className="w-full max-w-md mx-auto mt-8 rounded-xl shadow-xl shadow-slate-300">
       <CardHeader>
         <CardTitle>Add New Party</CardTitle>
       </CardHeader>
@@ -32,6 +31,7 @@ export default function AddPartyForm() {
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
+              className="w-full rounded-xl border-gray-300 border-2 focus:border-black"
               id="name"
               type="text"
               value={name}
@@ -43,6 +43,7 @@ export default function AddPartyForm() {
           <div className="space-y-2">
             <Label htmlFor="mobile">Mobile Number</Label>
             <Input
+              className="w-full rounded-xl border-gray-300 border-2 focus:border-black"
               id="mobile"
               type="tel"
               value={mobile}
@@ -54,6 +55,7 @@ export default function AddPartyForm() {
           <div className="space-y-2">
             <Label htmlFor="address">Address</Label>
             <Input
+              className="w-full rounded-xl border-gray-300 border-2 focus:border-black"
               id="address"
               type="text"
               value={address}
@@ -64,13 +66,19 @@ export default function AddPartyForm() {
           </div>
           <div className="flex justify-between">
             <Button
+              className="rounded-xl border-gray-300 border-2 hover:border-black hover:font-bold"
               type="button"
               variant="outline"
               onClick={() => router.push("/")}
             >
               Cancel
             </Button>
-            <Button type="submit">Add Party</Button>
+            <Button
+              className="rounded-xl hover:bg-pink-300 hover:font-bold"
+              type="submit"
+            >
+              Add Party
+            </Button>
           </div>
         </form>
       </CardContent>

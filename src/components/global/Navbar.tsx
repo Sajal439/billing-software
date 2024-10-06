@@ -36,7 +36,7 @@ export default function Navbar() {
               <div key={item.title} className="relative group">
                 <Button
                   variant="ghost"
-                  className="inline-flex items-center px-4 pt-1 text-sm font-medium h-16 relative group hover:bg-slate-100"
+                  className="inline-flex items-center px-4 pt-1 text-sm font-medium h-16 relative group hover:bg-slate-100 rounded-xl"
                   onClick={() => toggleOpen(index)}
                 >
                   {item.title}
@@ -44,7 +44,7 @@ export default function Navbar() {
                 </Button>
                 {openIndex === index && (
                   <div
-                    className={`absolute z-10 mt-2 w-56 rounded-md shadow-lg bg-background ring-1 ring-black ring-opacity-5 ${
+                    className={`absolute z-10 mt-2 w-56 rounded-xl shadow-lg bg-background ring-1 ring-black ring-opacity-5 ${
                       index === NAVITEMS.length - 1 ? "right-0" : "left-0"
                     }`}
                   >
@@ -58,7 +58,7 @@ export default function Navbar() {
                         <a
                           key={subItem}
                           href="#"
-                          className="block px-4 py-2 text-sm text-foreground hover:bg-slate-100 hover:text-accent-foreground"
+                          className="block px-4 py-2 text-sm bg-white opacity-100 hover:bg-slate-100 rounded-xl"
                           role="menuitem"
                         >
                           {subItem}
