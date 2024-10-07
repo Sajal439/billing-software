@@ -10,7 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 interface Transaction {
@@ -26,63 +32,38 @@ interface Party {
   name: string;
 }
 
-// Mock data for demonstration
-const parties: Party[] = [
-  { id: 1, name: "Acme Corp" },
-  { id: 2, name: "Globex Corporation" },
-  { id: 3, name: "Stark Industries" },
-];
-
-const transactions: Transaction[] = [
-  {
-    id: 1,
-    date: "2023-06-01",
-    description: "Invoice #001",
-    debit: 1000,
-    credit: 0,
-  },
-  {
-    id: 2,
-    date: "2023-06-05",
-    description: "Payment received",
-    debit: 0,
-    credit: 500,
-  },
-  {
-    id: 3,
-    date: "2023-06-10",
-    description: "Invoice #002",
-    debit: 750,
-    credit: 0,
-  },
-  {
-    id: 4,
-    date: "2023-06-15",
-    description: "Payment received",
-    debit: 0,
-    credit: 1000,
-  },
-  {
-    id: 5,
-    date: "2023-06-20",
-    description: "Invoice #003",
-    debit: 1200,
-    credit: 0,
-  },
-];
-
-export function PartyLedger() {
+export default function PartyLedger() {
+  const [parties, setParties] = useState<Party[]>([]);
   const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [partyTransactions, setPartyTransactions] = useState<Transaction[]>([]);
   const [balance, setBalance] = useState(0);
 
   useEffect(() => {
+    fetchParties();
+  }, []);
+
+  useEffect(() => {
     if (selectedParty) {
-      // In a real application, you would fetch transactions for the selected party from an API
-      setPartyTransactions(transactions);
-      calculateBalance(transactions);
+      fetchTransactions(selectedParty.id);
     }
   }, [selectedParty]);
+
+  const fetchParties = async () => {
+    const response = await fetch("/api/parties");
+    if (response.ok) {
+      const data = await response.json();
+      setParties(data);
+    }
+  };
+
+  const fetchTransactions = async (partyId: number) => {
+    const response = await fetch(`/api/transactions?partyId=${partyId}`);
+    if (response.ok) {
+      const data = await response.json();
+      setPartyTransactions(data);
+      calculateBalance(data);
+    }
+  };
 
   const calculateBalance = (transactions: Transaction[]) => {
     const newBalance = transactions.reduce((acc, transaction) => {
@@ -91,8 +72,8 @@ export function PartyLedger() {
     setBalance(newBalance);
   };
 
-  const handlePartyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const partyId = parseInt(event.target.value);
+  const handlePartyChange = (value: string) => {
+    const partyId = parseInt(value);
     const party = parties.find((p) => p.id === partyId) || null;
     setSelectedParty(party);
   };
@@ -106,19 +87,18 @@ export function PartyLedger() {
         <CardContent>
           <div className="mb-6">
             <Label htmlFor="party-select">Select Party</Label>
-            <select
-              id="party-select"
-              className="w-full p-2 border rounded mt-1"
-              onChange={handlePartyChange}
-              value={selectedParty?.id || ""}
-            >
-              <option value="">Select a party</option>
-              {parties.map((party) => (
-                <option key={party.id} value={party.id}>
-                  {party.name}
-                </option>
-              ))}
-            </select>
+            <Select onValueChange={handlePartyChange}>
+              <SelectTrigger id="party-select">
+                <SelectValue placeholder="Select a party" />
+              </SelectTrigger>
+              <SelectContent>
+                {parties.map((party) => (
+                  <SelectItem key={party.id} value={party.id.toString()}>
+                    {party.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {selectedParty && (
@@ -142,7 +122,9 @@ export function PartyLedger() {
 
                     return (
                       <TableRow key={transaction.id}>
-                        <TableCell>{transaction.date}</TableCell>
+                        <TableCell>
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>{transaction.description}</TableCell>
                         <TableCell className="text-right">
                           {transaction.debit.toFixed(2)}

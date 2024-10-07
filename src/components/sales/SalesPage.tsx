@@ -35,6 +35,7 @@ interface Item {
   name: string;
   rate: number;
 }
+
 interface TableItem {
   id: number;
   name: string;
@@ -51,18 +52,6 @@ const itemDatabase: Item[] = [
   { id: 4, name: "Item D", rate: 5.25 },
   { id: 5, name: "Item E", rate: 30.0 },
 ];
-const partySuggestions = [
-  { name: "Acme Corp", mobile: "1234567890" },
-  { name: "Globex Corporation", mobile: "2345678901" },
-  { name: "Soylent Corp", mobile: "3456789012" },
-  { name: "Initech", mobile: "4567890123" },
-  { name: "Umbrella Corporation", mobile: "5678901234" },
-  { name: "Hooli", mobile: "6789012345" },
-  { name: "Dunder Mifflin", mobile: "7890123456" },
-  { name: "Stark Industries", mobile: "8901234567" },
-  { name: "Wayne Enterprises", mobile: "9012345678" },
-  { name: "Cyberdyne Systems", mobile: "0123456789" },
-];
 
 export default function SalesRecordForm() {
   const [date, setDate] = useState("");
@@ -70,7 +59,7 @@ export default function SalesRecordForm() {
   const [voucherType, setVoucherType] = useState("");
   const [partyName, setPartyName] = useState("");
   const [partyMobile, setPartyMobile] = useState("");
-  const [suggestions, setSuggestions] = useState<typeof partySuggestions>([]);
+  const [partySuggestions, setPartySuggestions] = useState<Party[]>([]);
   const [tableItems, setTableItems] = useState<TableItem[]>([]);
   const [newItem, setNewItem] = useState<TableItem>({
     id: 1,
@@ -79,28 +68,44 @@ export default function SalesRecordForm() {
     rate: 0,
     amount: 0,
   });
+  const [allParties, setAllParties] = useState<Party[]>([]);
   const [itemSuggestions, setItemSuggestions] = useState<Item[]>([]);
+
+  useEffect(() => {
+    fetchParties();
+  }, []);
+
+  const fetchParties = async () => {
+    try {
+      const response = await fetch("/api/parties");
+      if (response.ok) {
+        const parties = await response.json();
+        setAllParties(parties);
+      } else {
+        console.error("Failed to fetch parties");
+      }
+    } catch (error) {
+      console.error("Error fetching parties:", error);
+    }
+  };
 
   const handlePartyNameChange = (value: string) => {
     setPartyName(value);
     setPartyMobile("");
     if (value.length > 0) {
-      const filtered = partySuggestions.filter((party) =>
+      const filtered = allParties.filter((party) =>
         party.name.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(filtered);
+      setPartySuggestions(filtered);
     } else {
-      setSuggestions([]);
+      setPartySuggestions([]);
     }
   };
 
-  const handleSuggestionClick = (suggestion: {
-    name: string;
-    mobile: string;
-  }) => {
+  const handlePartySuggestionClick = (suggestion: Party) => {
     setPartyName(suggestion.name);
     setPartyMobile(suggestion.mobile);
-    setSuggestions([]);
+    setPartySuggestions([]);
   };
 
   const handleItemNameChange = (value: string) => {
@@ -131,14 +136,16 @@ export default function SalesRecordForm() {
 
   const handleAddItem = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent form submission
-    setTableItems([...tableItems, newItem]);
-    setNewItem({
-      id: tableItems.length + 2,
-      name: "",
-      quantity: 0,
-      rate: 0,
-      amount: 0,
-    });
+    if (newItem.name && newItem.quantity > 0) {
+      setTableItems([...tableItems, newItem]);
+      setNewItem({
+        id: tableItems.length + 2,
+        name: "",
+        quantity: 0,
+        rate: 0,
+        amount: 0,
+      });
+    }
   };
 
   const handleItemChange = (
@@ -174,17 +181,50 @@ export default function SalesRecordForm() {
     setNewItem((prev) => ({ ...prev, id: reindexedItems.length + 1 }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const calculateTotal = () => {
+    return tableItems.reduce((total, item) => total + item.amount, 0);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted", {
+    const formData = {
       date,
       invoiceNumber,
       voucherType,
       partyName,
       partyMobile,
-      tableItems,
-    });
+      items: tableItems,
+      total: calculateTotal(),
+    };
+
+    try {
+      const response = await fetch("/api/sales", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        // Reset form after successful submission
+        setDate("");
+        setInvoiceNumber("");
+        setVoucherType("");
+        setPartyName("");
+        setPartyMobile("");
+        setTableItems([]);
+        setNewItem({ id: 1, name: "", quantity: 0, rate: 0, amount: 0 });
+        alert("Sales record submitted successfully!");
+      } else {
+        alert("Failed to submit sales record. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting sales record:", error);
+      alert(
+        "An error occurred while submitting the sales record. Please try again."
+      );
+    }
   };
 
   useEffect(() => {
@@ -193,7 +233,7 @@ export default function SalesRecordForm() {
   }, [newItem.quantity, newItem.rate]);
 
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-8 rounded-xl shadow-xl shadow-slate-300">
+    <Card className="w-full max-w-4xl mx-auto mt-8">
       <CardHeader>
         <CardTitle>Sales Record Form</CardTitle>
       </CardHeader>
@@ -203,57 +243,38 @@ export default function SalesRecordForm() {
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
-                className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 id="date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="invoiceNumber">Invoice Number</Label>
               <Input
-                className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 id="invoiceNumber"
                 type="text"
                 value={invoiceNumber}
                 onChange={(e) => setInvoiceNumber(e.target.value)}
+                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="voucherType">Voucher Type</Label>
-              <Select value={voucherType} onValueChange={setVoucherType}>
-                <SelectTrigger
-                  id="voucherType"
-                  className="w-full rounded-xl focus:border-black border-gray-400 border-1"
-                >
+              <Select
+                value={voucherType}
+                onValueChange={setVoucherType}
+                required
+              >
+                <SelectTrigger id="voucherType">
                   <SelectValue placeholder="Select voucher type" />
                 </SelectTrigger>
-                <SelectContent className="bg-white opacity-100 cursor-pointer">
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="sales"
-                  >
-                    Sales
-                  </SelectItem>
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="purchase"
-                  >
-                    Purchase
-                  </SelectItem>
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="receipt"
-                  >
-                    Receipt
-                  </SelectItem>
-                  <SelectItem
-                    className="cursor-pointer hover:font-bold"
-                    value="payment"
-                  >
-                    Payment
-                  </SelectItem>
+                <SelectContent>
+                  <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="purchase">Purchase</SelectItem>
+                  <SelectItem value="receipt">Receipt</SelectItem>
+                  <SelectItem value="payment">Payment</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -262,29 +283,27 @@ export default function SalesRecordForm() {
             <Label htmlFor="partyName">Party Name</Label>
             <div className="relative flex items-center">
               <Input
-                className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                 id="partyName"
                 type="text"
                 value={partyName}
                 onChange={(e) => handlePartyNameChange(e.target.value)}
                 placeholder="Search for party name"
+                className="flex-grow"
+                required
               />
               <Link href="/add-party" passHref>
-                <Button
-                  className="ml-2 hover:bg-black hover:text-white rounded-xl "
-                  size="icon"
-                >
+                <Button className="ml-2" size="icon">
                   <Plus className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
-            {suggestions.length > 0 && (
-              <ul className="absolute z-10 w-full bg-background border border-input rounded-xl mt-1 max-h-60 overflow-auto">
-                {suggestions.map((suggestion, index) => (
+            {partySuggestions.length > 0 && (
+              <ul className="absolute z-10 w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-auto">
+                {partySuggestions.map((suggestion) => (
                   <li
-                    key={index}
-                    className="px-4 py-2 hover:font-bold bg-white opacity-100 cursor-pointer"
-                    onClick={() => handleSuggestionClick(suggestion)}
+                    key={suggestion.id}
+                    className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    onClick={() => handlePartySuggestionClick(suggestion)}
                   >
                     {suggestion.name}
                   </li>
@@ -295,12 +314,12 @@ export default function SalesRecordForm() {
           <div className="space-y-2">
             <Label htmlFor="partyMobile">Party Mobile Number</Label>
             <Input
-              className="w-full rounded-xl focus:border-black border-gray-400 border-1"
               id="partyMobile"
               type="tel"
               value={partyMobile}
               onChange={(e) => setPartyMobile(e.target.value)}
               placeholder="Enter party mobile number"
+              required
             />
           </div>
           <div className="space-y-4">
@@ -331,13 +350,14 @@ export default function SalesRecordForm() {
                             Number(e.target.value)
                           )
                         }
+                        min="0"
+                        step="1"
                       />
                     </TableCell>
                     <TableCell>{item.rate.toFixed(2)}</TableCell>
                     <TableCell>{item.amount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Button
-                        className="rounded-xl hover:bg-red-400 hover:text-white"
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteItem(item.id)}
@@ -352,17 +372,16 @@ export default function SalesRecordForm() {
                   <TableCell>
                     <div className="relative">
                       <Input
-                        className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                         value={newItem.name}
                         onChange={(e) => handleItemNameChange(e.target.value)}
                         placeholder="Search for item"
                       />
                       {itemSuggestions.length > 0 && (
-                        <ul className="absolute z-10 w-full bg-background border border-input rounded-xl mt-1 max-h-60 overflow-auto">
+                        <ul className="absolute z-10 w-full bg-background border border-input rounded-md mt-1 max-h-60 overflow-auto">
                           {itemSuggestions.map((suggestion) => (
                             <li
                               key={suggestion.id}
-                              className="px-4 py-2 z-10 hover:font-bold bg-white opacity-100 cursor-pointer"
+                              className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
                               onClick={() =>
                                 handleItemSuggestionClick(suggestion)
                               }
@@ -376,7 +395,6 @@ export default function SalesRecordForm() {
                   </TableCell>
                   <TableCell>
                     <Input
-                      className="w-full rounded-xl focus:border-black border-gray-400 border-1"
                       type="number"
                       value={newItem.quantity || ""}
                       onChange={(e) =>
@@ -390,28 +408,25 @@ export default function SalesRecordForm() {
                         })
                       }
                       placeholder="Quantity"
+                      min="0"
+                      step="1"
                     />
                   </TableCell>
                   <TableCell>{newItem.rate.toFixed(2)}</TableCell>
                   <TableCell>{newItem.amount.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Button
-                      className="hover:bg-black hover:text-white rounded-xl"
-                      onClick={handleAddItem}
-                    >
-                      Add
-                    </Button>
+                    <Button onClick={handleAddItem}>Add</Button>
                   </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </div>
-          <Button
-            className="hover:bg-black hover:text-white rounded-xl"
-            type="submit"
-          >
-            Submit
-          </Button>
+          <div className="text-right">
+            <p className="text-lg font-semibold">
+              Total: ${calculateTotal().toFixed(2)}
+            </p>
+          </div>
+          <Button type="submit">Submit</Button>
         </form>
       </CardContent>
     </Card>

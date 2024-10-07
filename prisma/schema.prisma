@@ -47,8 +47,22 @@ model Account {
   transactions   Transaction[] @relation("AccountTransaction")
 }
 
+model Party {
+  id           Int           @id @default(autoincrement())
+  name         String
+  mobile       String?
+  address      String?
+  transactions Transaction[]
+}
+
 model Transaction {
-  id String @id @default(uuid())
+  id          String   @id @default(uuid())
+  date        DateTime
+  description String
+  debit       Float
+  credit      Float
+  partyId     Int
+  party       Party    @relation(fields: [partyId], references: [id])
 
   Account Account[] @relation("AccountTransaction")
 }

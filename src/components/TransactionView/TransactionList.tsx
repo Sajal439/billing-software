@@ -1,3 +1,4 @@
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -8,20 +9,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Transaction {
-  id: number;
-  date: string;
-  invoiceNumber: string;
-  partyName: string;
-  voucherType: string;
-  totalAmount: number;
+async function getTransactions(searchParams: URLSearchParams) {
+  const response = await fetch(`/api/transactions?${searchParams.toString()}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch transactions");
+  }
+  return response.json();
 }
 
-interface TransactionListProps {
-  transactions: Transaction[];
-}
+export async function TransactionList() {
+  const searchParams = useSearchParams();
+  const transactions = await getTransactions(searchParams);
 
-export function TransactionList({ transactions }: TransactionListProps) {
   return (
     <Card>
       <CardContent>
@@ -29,20 +30,26 @@ export function TransactionList({ transactions }: TransactionListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>Invoice Number</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Party Name</TableHead>
-              <TableHead>Voucher Type</TableHead>
-              <TableHead>Total Amount</TableHead>
+              <TableHead className="text-right">Debit</TableHead>
+              <TableHead className="text-right">Credit</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
+            {transactions.map((transaction: any) => (
               <TableRow key={transaction.id}>
-                <TableCell>{transaction.date}</TableCell>
-                <TableCell>{transaction.invoiceNumber}</TableCell>
-                <TableCell>{transaction.partyName}</TableCell>
-                <TableCell>{transaction.voucherType}</TableCell>
-                <TableCell>{transaction.totalAmount.toFixed(2)}</TableCell>
+                <TableCell>
+                  {new Date(transaction.date).toLocaleDateString()}
+                </TableCell>
+                <TableCell>{transaction.description}</TableCell>
+                <TableCell>{transaction.party.name}</TableCell>
+                <TableCell className="text-right">
+                  {transaction.debit.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {transaction.credit.toFixed(2)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
