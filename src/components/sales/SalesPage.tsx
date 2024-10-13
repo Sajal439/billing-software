@@ -291,7 +291,7 @@ export default function SalesRecordForm() {
                 className="flex-grow"
                 required
               />
-              <Link href="/add-party" passHref>
+              <Link href="/AddParty" passHref>
                 <Button className="ml-2" size="icon">
                   <Plus className="h-4 w-4" />
                 </Button>
